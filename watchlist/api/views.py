@@ -1,5 +1,6 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from .permissions import AdminOrReadOnly, ReviewUserOrReadOnly
+from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
 
 from watchlist.models import StreamPlatform, Movie, Review
 from .serializers import StreamPlatformSerializer, MovieListSerializer, ReviewSerializer
@@ -8,12 +9,14 @@ from .serializers import StreamPlatformSerializer, MovieListSerializer, ReviewSe
 class StreamPlatformView(generics.ListCreateAPIView):
     queryset = StreamPlatform.objects.all()
     serializer_class = StreamPlatformSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 
 class StreamPlatformDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = StreamPlatform.objects.all()
     serializer_class = StreamPlatformSerializer
+    permission_classes = [ReviewUserOrReadOnly]
+    
 
 
 class MovieListView(generics.ListCreateAPIView):
@@ -28,15 +31,24 @@ class MovieListView(generics.ListCreateAPIView):
 class MovieDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieListSerializer
+    permission_classes = [ReviewUserOrReadOnly]
 
 
-class ReviewListView(generics.ListCreateAPIView):
-    queryset = Review.objects.all()
+class ReviewListCreateView(generics.ListCreateAPIView):
+    # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Review.objects.filter(movie=pk)
+
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    # permission_classes = [AdminOrReadOnly]
+    permission_classes = [ReviewUserOrReadOnly]
 
 
 
